@@ -1,21 +1,29 @@
 
 const cors=require("cors");
 const express=require("express");
+const path = require("path");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
 
 const app=express();
-app.use(cors(
-    {  origin: ['http://localhost:3000', 'http://127.0.0.1:3000',process.env.FRONTEND_URL],
-        credentials: true
-    }
-));
+const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000', process.env.FRONTEND_URL].filter(Boolean);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
-app.get("/",(req,res)=>{
-    res.send("shopnest backend is running properly");
+app.get("/api/health",(req,res)=>{
+    res.json({ status: "ok", service: "shopnest-api" });
 });
 
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -25,10 +33,9 @@ app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 
 
-// Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
-  
+
   app.use((req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
   });

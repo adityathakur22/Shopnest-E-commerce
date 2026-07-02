@@ -36,7 +36,7 @@ const Checkout = () => {
       }
 
       const options = {
-        key: 'rzp_test_dummykey123', // Student dummy fallback
+        key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'ShopNest',
